@@ -5,16 +5,225 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
     <title>Three.js Template</title>
-    <style>
-        body {
-            overflow: hidden;
-            margin: 0px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="./src/styles/index.css">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <!-- Oct 20th 2023 version: https://github.com/quadjr/aframe-gaussian-splatting/commit/fe131e6dd4491a6f5e31de20ada8cf07ae43f5de  -->
+    <!-- <script src="./src/scripts/gaussian-splatting.js"></script> -->
+    <!-- Latest -->
+    <script src="https://quadjr.github.io/aframe-gaussian-splatting/index.js"></script>
+    <script src="./src/scripts/spe.js"></script>
+    <script src="./src/scripts/particle-system.js"></script>
+    <script src="./src/scripts/orbit-controls142.js"></script>
   </head>
 
   <body>
-    <div id="app"></div>
-    <script type="module" src="./src/index.ts"></script>
+    <div id="controls">
+      <h2>Splat Controls</h2>
+      <label>P-X:<input type="number" id="positionX" step="0.1" value="0"></label>
+      <label>P-Y:<input type="number" id="positionY" step="0.1" value="1.5"></label>
+      <label>P-Z:<input type="number" id="positionZ" step="0.1" value="-2"></label>
+      <br>
+      <label>R-X:<input type="number" id="rotationX" value="0"></label>
+      <label>R-Y:<input type="number" id="rotationY" value="0"></label>
+      <label>R-Z:<input type="number" id="rotationZ" value="0"></label>
+      <br>
+      <label>S-X:<input type="number" id="scaleX" step="0.1" value="1"></label>
+      <label>S-Y:<input type="number" id="scaleY" step="0.1" value="1"></label>
+      <label>S-Z:<input type="number" id="scaleZ" step="0.1" value="1"></label>
+      <br>
+      <label>Scale: <input type="range" id="scaleSlider" min="0.1" max="5" step="0.1" style="width: 200px"></label>
+      <br>
+<!--       <label>Scale Lock:<input type="checkbox" id="scaleLock" checked></label> -->
+      <input type="file" id="upload" style="display: none;">
+      <br>
+      <button id="uploadButton">Upload .splat</button>
+    </div>
+    <a-scene id="scene" renderer="antialias: false">
+<!--       wasd-controls="fly: true" -->
+      <a-camera id="camera"
+        position="0 0 2"
+        look-controls-enabled="false"
+        orbit-controls="target: 0 1.5 -2;
+          rotateSpeed: 1.5;
+          panSpeed: 1.5;
+          maxPolarAngle: 180;
+          minPolarAngle: 0;"
+        raycaster="objects: .clickable">
+      </a-camera>
+      <a-entity rotation="10 0 0">
+        <!-- <a-entity position="1.2 1.2 -2.7" animation="property: rotation; to: 0 360 0; dur: 10000; easing: linear; loop: true"> -->
+          <a-sphere id="test" position="0 0 0.5" radius="0.2" color="#EF2D5E"></a-sphere>
+          <a-box class="clickable" position="0.5 0 0" rotation="0 45 0" height="0.4" width="0.4" depth="0.4" color="#4CC3D9" shadow></a-box>
+          <a-cylinder position="0 0 -0.5" radius="0.25" height="0.4" color="#FFC65D" shadow></a-cylinder>
+        <!-- </a-entity> -->
+      </a-entity>
+      <a-entity id="splatParent">
+<!--         <a-entity id="splat" gaussian_splatting="src: https://huggingface.co/cakewalk/splat-data/resolve/main/truck.splat;" position="0 1.5 -2"></a-entity> -->
+        <a-entity id="splat"
+          gaussian_splatting="src: https://huggingface.co/cakewalk/splat-data/resolve/main/truck.splat;"
+          position="0 0.85 -0.5"
+          rotation="-80 0 0"
+          scale="0.2 0.2 0.2">
+        </a-entity>
+      </a-entity>
+      <a-entity 
+        position="-0.5 0 -1"
+        scale="-1 -1 -1"
+        particle-system="
+          particleCount: 200;
+          velocitySpread: 2 0 3;
+          positionSpread: 0.05 0.5 0.05;
+          maxAge:4;
+          size:0.5;
+          rotationAngle:3.4;
+          accelerationValue:0 0.025 0;
+          accelerationSpread:0.01 0 0.01;
+          velocityValue:0 .25 0;
+          velocitySpread: 0.2 0.2 0.21;
+          color:#FFFFFF;
+          blending:1;
+          texture: https://cdn.rawgit.com/IdeaSpaceVR/aframe-particle-system-component/master/dist/images/smokeparticle.png">
+      </a-entity>
+<!--       <a-sky color="#000"></a-sky> -->
+    </a-scene>
+    
+    
+<!--   Drag-and-Drop + upload   -->
+    <script>
+      var scene = document.getElementById('scene');
+      function handleFileSelect(evt) {
+        if (evt.stopPropagation) evt.stopPropagation();
+        if (evt.preventDefault) evt.preventDefault();
+
+        var files = evt.dataTransfer ? evt.dataTransfer.files : evt.target.files;
+        var file = files[0];
+        var reader = new FileReader();
+
+        reader.onload = function(event) {
+          var splatEntity = document.querySelector('#splat');
+          console.log(event.target.result)
+          const newSplat = document.createElement('a-entity')
+          if (splatEntity.nextSibling) {
+            splatEntity.parentNode.insertBefore(newSplat, splatEntity.nextSibling);
+          } else {
+            splatEntity.parentNode.appendChild(newSplat);
+          }
+          splatEntity.remove()
+          newSplat.setAttribute('gaussian_splatting', 'src', event.target.result);
+          newSplat.setAttribute('id', 'splat')
+          newSplat.setAttribute('position', "0 0.85 -0.5")
+          newSplat.setAttribute('rotation', "-80 0 0")
+          newSplat.setAttribute('scale', "0.2 0.2 0.2")
+          scene.emit('splat');
+          document.getElementById('positionX').setAttribute('value', '0');
+          document.getElementById('positionY').setAttribute('value', '1.5');
+          document.getElementById('positionZ').setAttribute('value', '-2');
+          document.getElementById('rotationX').setAttribute('value', '0');
+          document.getElementById('rotationY').setAttribute('value', '0');
+          document.getElementById('rotationZ').setAttribute('value', '0');
+          document.getElementById('scaleX').setAttribute('value', '1');
+          document.getElementById('scaleY').setAttribute('value', '1');
+          document.getElementById('scaleZ').setAttribute('value', '1');
+        };
+
+        reader.readAsDataURL(file);
+      }
+      
+      function handleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = 'copy';
+        dropZone.style.pointerEvents = 'all';
+      }
+      
+      function handleDragLeave() {
+        dropZone.style.pointerEvents = 'none';
+      }
+
+      var dropZone = document.getElementById('scene');
+      dropZone.addEventListener('dragover', handleDragOver, false);
+      dropZone.addEventListener('dragleave', handleDragLeave, false);
+      dropZone.addEventListener('drop', handleFileSelect, false);
+      
+      var upload = document.getElementById('upload');
+      var uploadButton = document.getElementById('uploadButton');
+
+      uploadButton.addEventListener('click', function() {
+        upload.click();
+      });
+
+      upload.addEventListener('change', function(evt) {
+        handleFileSelect({ dataTransfer: { files: upload.files } });
+      });
+    </script>
+    
+    
+<!--   Controls JS   -->
+    <script>
+      var splat = document.querySelector('#splat');
+      var scaleLock = document.querySelector('#scaleLock');
+      var scene = document.getElementById('scene');
+      scene.addEventListener('splat', () => {
+        splat = document.querySelector('#splat')
+      })
+
+      document.querySelector('#controls').addEventListener('input', function(event) {
+        var id = event.target.id;
+        var value = event.target.value;
+
+        if (id.startsWith('position')) {
+          splat.object3D.position[id.charAt(8).toLowerCase()] = value;
+        } else if (id.startsWith('rotation')) {
+          splat.object3D.rotation[id.charAt(8).toLowerCase()] = THREE.MathUtils.degToRad(value);
+        } else if (id.startsWith('scale')) {
+          if (id === 'scaleSlider') {
+            splat.object3D.scale.set(value, value, value);
+            document.getElementById('scaleX').setAttribute('value', value);
+            document.getElementById('scaleY').setAttribute('value', value);
+            document.getElementById('scaleZ').setAttribute('value', value);            
+          // }
+          // if (scaleLock.checked) {
+          //   splat.object3D.scale.set(value, value, value);
+          //   document.getElementById('scaleX').setAttribute('value', value);
+          //   document.getElementById('scaleY').setAttribute('value', value);
+          //   document.getElementById('scaleZ').setAttribute('value', value);
+          } else {
+            splat.object3D.scale[id.charAt(5).toLowerCase()] = value;
+          }
+        }
+      });
+    </script>
+    <script type="importmap">
+      {
+          "imports": {
+              "three": "./node_modules/three/build/three.module.js"
+          }
+      }
+    </script>
+    <script type="module">
+      import { TransformControls } from './node_modules/three/examples/jsm/controls/TransformControls.js';
+      let camera = undefined
+      // set the transform controls
+      const setTransformControls = () => {
+        var domElement = document.querySelector('#scene');
+        const TransformController = new TransformControls(camera, domElement);
+        var test = document.querySelector('#test');
+        console.log("attaching transform controls")
+        TransformController.attach(test.object3D);
+      }
+      // get the three camera object from aframe
+      const getCamera = () => {
+        camera = document.querySelector('#camera').object3D.children[0];
+        console.log("Camera:", camera)
+        if (!camera) {
+          return setTimeout(getCamera, 1000)
+        } else {
+          setTransformControls()
+        }
+      }
+      // init
+      getCamera()
+    </script>
+    <script type="module" src="./index.js"></script>
   </body>
 </html>

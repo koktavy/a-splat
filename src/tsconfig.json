@@ -1,8 +1,14 @@
 {
   "compilerOptions": {
-      "moduleResolution": "node",
-      "strict": true,
-      "allowSyntheticDefaultImports": true
+    "target": "ES6",
+    "module": "ESNext", // or "ES6"
+    "baseUrl": "./",
+    "paths": {
+      "three": ["node_modules/three"]
+    },
+    "moduleResolution": "node",
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
   },
   "include": ["**/*.ts"]
 }

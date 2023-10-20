@@ -2,7 +2,7 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-    entry: './src/index.ts',
+    entry: './index.js',
     module: {
         rules: [
             {
@@ -21,7 +21,17 @@ module.exports = {
             {
               test: /\.jpg$/,
               use: 'file-loader'
-            }
+            },
+            {
+              test: /\.js$/,
+              exclude: /node_modules/,
+              use: {
+                loader: 'babel-loader',
+                options: {
+                  presets: ['@babel/preset-env'],
+                },
+              },
+            },
         ],
     },
     resolve: {
