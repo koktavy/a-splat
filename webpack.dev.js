@@ -10,6 +10,7 @@ module.exports = merge(common, {
             directory: path.join(__dirname, './'),
         },
         hot: true,
-        https: true
+        https: true,
+        open: true
     }
 })
