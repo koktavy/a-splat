@@ -18,7 +18,7 @@
   </head>
 
   <body>
-    <div id="controls">
+    <div id="controls" style="display: none;">
       <h2>Splat Controls</h2>
       <label>P-X:<input type="number" id="positionX" step="0.1" value="0"></label>
       <label>P-Y:<input type="number" id="positionY" step="0.1" value="1.5"></label>
@@ -42,12 +42,15 @@
     <!-- End GUI -->
 
     <!-- Scene -->
-    <a-scene id="scene" renderer="antialias: false">
+    <a-scene id="scene"
+      renderer="antialias: false"
+      background="color: #232323"
+      vr-mode-ui="enabled: false">
       <a-camera id="camera"
         position="0 0 0"
         wasd-controls="enabled: false"
         look-controls="enabled: false"
-        orbit-controls="target: 0 -1 2;
+        orbit-controls="target: 0 -0.5 1.25;
           autoRotate: true;
           enableDamping: false;
           dampingFactor: 0.25;
@@ -60,26 +63,31 @@
       <!-- Splat -->
       <a-entity id="splatParent">
         <a-entity id="splat"
+        gaussian_splatting="src: ./src/assets/gs_Practice.cleaned.ply;"
+        position="0 -0.5 1.25"
+        rotation="0 270 0"
+        scale="0.5 0.5 0.5">
+      </a-entity>
+    </a-entity>      
+    <a-entity id="bucketParent"
+      position="0 0.125 1.25"
+      animation__rot="property: rotation; to: 0 360 0; dur: 8000; easing: linear; loop: true">
+      <a-entity id="tiltBucket"
+        rotation="90 0 0">
+        <a-entity id="bucket"
           gaussian_splatting="src: ./src/assets/gs_Kelp_Busket.cleaned.ply;"
-          position="0 -1 2"
-          rotation="0 270 0"
-          scale="0.5 0.5 0.5">
+          position="-0.75 0 0"
+          rotation="0 0 0"
+          scale="0.1 0.1 0.1"
+          animation__rot="property: rotation; to: 0 360 0; dur: 6000; easing: easeInOutBack; loop: true">
         </a-entity>
       </a-entity>
-      <!-- Entities -->
-      <a-entity id="entityGroup"
-        position="0 -1 2"
-        rotation="0 0 0"
-        animation__rotation="property: rotation; to: 0 360 0; dur: 6000; loop: true; easing: easeInOutQuad">
-        <a-sphere id="test" position="0 0 0.5" radius="0.2" color="#EF2D5E"></a-sphere>
-        <a-box class="clickable" position="0.5 0 0" rotation="0 45 0" height="0.4" width="0.4" depth="0.4" color="#4CC3D9" shadow></a-box>
-        <a-cylinder position="0 0 -0.5" radius="0.25" height="0.4" color="#FFC65D" shadow></a-cylinder>
-      </a-entity>
-    </a-scene>
+    </a-entity>
+  </a-scene>
     <!-- End Scene -->
     
     <!-- Drag-and-Drop + upload -->
-    <script>
+    <!-- <script>
       var scene = document.getElementById('scene');
       function handleFileSelect(evt) {
         if (evt.stopPropagation) evt.stopPropagation();
@@ -144,7 +152,7 @@
       upload.addEventListener('change', function(evt) {
         handleFileSelect({ dataTransfer: { files: upload.files } });
       });
-    </script>
+    </script> -->
 
     <!-- Controls JS -->
     <script>

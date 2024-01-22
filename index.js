@@ -8,7 +8,7 @@ const guiParams = {
   radius: 360
 };
 
-const SHOW_GUI = true
+const SHOW_GUI = false
 let test
 
 const init = async () => {
